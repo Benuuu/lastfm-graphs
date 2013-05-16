@@ -1,10 +1,16 @@
+#!/usr/bin/ruby
 require 'lastfm'
 require 'json'
 require 'set'
 require './env'
 
+if ARGV.length != 1
+    puts "Usage: ./#{$PROGRAM_NAME} username"
+    exit(0)
+end
+
 lastfm = Lastfm.new(LAST_FM_KEY, LAST_FM_SECRET)
-top_artists = lastfm.user.get_top_artists(:user => "Benuuu", :limit => 10)
+top_artists = lastfm.user.get_top_artists(:user => ARGV[0], :limit => 10)
 
 ta = {}
 
@@ -17,8 +23,10 @@ all_tags = {}
 genres = {}
 
 s = Set.new
+top_artists_count = top_artists.length
 
-top_artists.each do |artist|
+top_artists.each.with_index(1) do |artist, index|
+  puts "#{index} of #{top_artists_count}: Processing #{artist['name']}"
   # tags
   tags = lastfm.artist.get_top_tags(:artist => artist['name'])
   all_tags[artist['name']] = tags[0]['name']
