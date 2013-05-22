@@ -3,14 +3,31 @@ require 'lastfm'
 require 'json'
 require 'set'
 require './env'
+require 'optparse'
 
-if ARGV.length != 1
-    puts "Usage: ./#{$PROGRAM_NAME} username"
-    exit(0)
+options = {}
+options[:max_artists] = 10
+
+OptionParser.new do |opts|
+    opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
+    
+    opts.on("-u", "--username NAME", "Username") do |u|
+        options[:username] = u
+    end
+    opts.on("-n", "--number NUMBER", Integer, "The maximum number of artists to fetch") do |n|
+        options[:max_artists] = n
+    end
+    opts.on("-h", "--help") { puts opts; exit } 
+    opts.parse!
+end
+
+if options[:username].nil?
+    puts "No username given."
+    raise OptionParser::MissingArgument
 end
 
 lastfm = Lastfm.new(LAST_FM_KEY, LAST_FM_SECRET)
-top_artists = lastfm.user.get_top_artists(:user => ARGV[0], :limit => 10)
+top_artists = lastfm.user.get_top_artists(:user => options[:username], :limit => options[:max_artists])
 
 ta = {}
 
