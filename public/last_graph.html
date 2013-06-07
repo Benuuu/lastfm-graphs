@@ -63,6 +63,15 @@ d3.json("top_artists.json", function(error, graph) {
     .attr("dy", ".35em")
     .style("text-anchor", "start");
 
+  function genreOver(d) {
+    svg.selectAll(".node circle").classed("active", function(p) { return p.color == d.color } );
+  }
+  
+  function clearActive(){
+    svg.selectAll(".link").classed("active", false);
+    svg.selectAll(".node circle").classed("active", false);    
+  }
+
   var legend = svg.selectAll(".legend")
     .data(graph.genres)
     .enter().append("g")
@@ -74,6 +83,8 @@ d3.json("top_artists.json", function(error, graph) {
     .attr("width", 18)
     .attr("height", 18)
     .style("fill", function(d) { return color(d.color); })
+    .on("mouseover", genreOver)
+    .on("mouseout", clearActive());
 
   legend.append("text")
     .attr("x", width - 24)
@@ -103,11 +114,6 @@ d3.json("top_artists.json", function(error, graph) {
     svg.select("#current-artist").text(d.name);
   }
   
-  function nodeOut(d){
-    svg.selectAll(".link").classed("active", false);
-    svg.selectAll(".node circle").classed("active", false);    
-  }
-
   var node = svg.selectAll(".node")
     .data(graph.nodes)
     .enter().append("g")
@@ -118,7 +124,7 @@ d3.json("top_artists.json", function(error, graph) {
     .attr("r", function(d) { return Math.sqrt(d.playcount/10); })
     .style("fill", function(d) { return color(d.color); })
     .on("mouseover", nodeOver)
-    .on("mouseout", nodeOut);
+    .on("mouseout", clearActive());
   
   node.append("text")
     .attr("dx", 12)
