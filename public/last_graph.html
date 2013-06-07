@@ -19,6 +19,17 @@
   stroke-width: .1;
 }
 
+.link.active {
+  stroke: red;
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
+
+.node circle.active {
+  stroke: red;
+  stroke-width: 3px;
+}
+
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -77,6 +88,26 @@ d3.json("top_artists.json", function(error, graph) {
     .attr("class", "link")
     .style("stroke-width", function(d) { return 1; });
   
+  var linkedByIndex = {}
+  graph.links.forEach(function(d) {
+    linkedByIndex[d.source.index+","+d.target.index] = 1;
+  })
+  
+  function neighboring(a,b) {
+    return linkedByIndex[a.index+","+b.index] == 1 || linkedByIndex[b.index+","+a.index] == 1 || a===b;
+  }
+
+  function nodeOver(d){
+    svg.selectAll(".link").classed("active", function(p) { return p.source===d || p.target === d; });
+    svg.selectAll(".node circle").classed("active", function(p) { return neighboring(d,p); });
+    svg.select("#current-artist").text(d.name);
+  }
+  
+  function nodeOut(d){
+    svg.selectAll(".link").classed("active", false);
+    svg.selectAll(".node circle").classed("active", false);    
+  }
+
   var node = svg.selectAll(".node")
     .data(graph.nodes)
     .enter().append("g")
@@ -86,7 +117,8 @@ d3.json("top_artists.json", function(error, graph) {
   node.append("circle")
     .attr("r", function(d) { return Math.sqrt(d.playcount/10); })
     .style("fill", function(d) { return color(d.color); })
-    .on("mouseover", function(d){ d3.select("#current-artist").text(d.name); });
+    .on("mouseover", nodeOver)
+    .on("mouseout", nodeOut);
   
   node.append("text")
     .attr("dx", 12)
