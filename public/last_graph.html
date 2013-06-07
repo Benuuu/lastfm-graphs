@@ -10,6 +10,7 @@
 .link {
   stroke: #999;
   stroke-opacity: .6;
+  stroke-width: 1px;
 }
 
 .node text {
@@ -23,6 +24,10 @@
   stroke: red;
   stroke-width: 2px;
   stroke-opacity: 1;
+}
+
+.inactive {
+  opacity: .1;
 }
 
 .node circle.active {
@@ -65,11 +70,15 @@ d3.json("top_artists.json", function(error, graph) {
 
   function genreOver(d) {
     svg.selectAll(".node circle").classed("active", function(p) { return p.color == d.color } );
+    svg.selectAll(".node").classed("inactive", function(p) { return p.color != d.color } );
+    svg.selectAll(".link").classed("inactive", true)
   }
   
   function clearActive(){
     svg.selectAll(".link").classed("active", false);
-    svg.selectAll(".node circle").classed("active", false);    
+    svg.selectAll(".node circle").classed("active", false);
+    svg.selectAll(".link").classed("inactive", false);
+    svg.selectAll(".node").classed("inactive", false);
   }
 
   var legend = svg.selectAll(".legend")
@@ -84,7 +93,7 @@ d3.json("top_artists.json", function(error, graph) {
     .attr("height", 18)
     .style("fill", function(d) { return color(d.color); })
     .on("mouseover", genreOver)
-    .on("mouseout", clearActive());
+    .on("mouseout", clearActive);
 
   legend.append("text")
     .attr("x", width - 24)
@@ -97,7 +106,6 @@ d3.json("top_artists.json", function(error, graph) {
     .data(graph.links)
     .enter().append("line")
     .attr("class", "link")
-    .style("stroke-width", function(d) { return 1; });
   
   var linkedByIndex = {}
   graph.links.forEach(function(d) {
@@ -111,6 +119,8 @@ d3.json("top_artists.json", function(error, graph) {
   function nodeOver(d){
     svg.selectAll(".link").classed("active", function(p) { return p.source===d || p.target === d; });
     svg.selectAll(".node circle").classed("active", function(p) { return neighboring(d,p); });
+    svg.selectAll(".link").classed("inactive", function(p) { return !(p.source===d || p.target === d); });
+    svg.selectAll(".node").classed("inactive", function(p) { return !neighboring(d,p); });
     svg.select("#current-artist").text(d.name);
   }
   
@@ -124,7 +134,7 @@ d3.json("top_artists.json", function(error, graph) {
     .attr("r", function(d) { return Math.sqrt(d.playcount/10); })
     .style("fill", function(d) { return color(d.color); })
     .on("mouseover", nodeOver)
-    .on("mouseout", clearActive());
+    .on("mouseout", clearActive);
   
   node.append("text")
     .attr("dx", 12)
